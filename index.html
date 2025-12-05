@@ -18,6 +18,103 @@
             padding: 20px;
         }
 
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+            text-align: center;
+        }
+
+        .modal-subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .template-option {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .template-option:hover {
+            border-color: #BF3143;
+            background: #fff5f7;
+        }
+
+        .template-option.selected {
+            border-color: #BF3143;
+            background: #fff5f7;
+        }
+
+        .template-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .template-description {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .modal-button {
+            width: 100%;
+            padding: 15px;
+            background: #BF3143;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        .modal-button:hover {
+            background: #a02838;
+        }
+
+        .modal-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
         .container {
             max-width: 600px;
             margin: 0 auto;
@@ -426,6 +523,40 @@
     </style>
 </head>
 <body>
+    <div class="modal-overlay" id="setupModal">
+        <div class="modal">
+            <div class="modal-title">Welcome to Daily Checklist! 🎯</div>
+            <div class="modal-subtitle">Choose a template to get started, or start with an empty list</div>
+            
+            <div class="template-option" onclick="selectTemplate('empty')">
+                <div class="template-name">Empty List</div>
+                <div class="template-description">Start fresh and add your own tasks</div>
+            </div>
+            
+            <div class="template-option" onclick="selectTemplate('productivity')">
+                <div class="template-name">Daily Productivity</div>
+                <div class="template-description">Morning routine, focus time, exercise, and self-care essentials</div>
+            </div>
+            
+            <div class="template-option" onclick="selectTemplate('wellness')">
+                <div class="template-name">Health & Wellness</div>
+                <div class="template-description">Fitness, nutrition, mindfulness, and healthy habits</div>
+            </div>
+            
+            <div class="template-option" onclick="selectTemplate('student')">
+                <div class="template-name">Student Life</div>
+                <div class="template-description">Study sessions, assignments, classes, and balance</div>
+            </div>
+            
+            <div class="template-option" onclick="selectTemplate('remote')">
+                <div class="template-name">Remote Worker</div>
+                <div class="template-description">Work-from-home routine, meetings, breaks, and boundaries</div>
+            </div>
+            
+            <button class="modal-button" id="confirmTemplate" onclick="confirmTemplateSelection()" disabled>Continue</button>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <div class="date" id="currentDate"></div>
@@ -477,9 +608,107 @@
         };
 
         let history = [];
+        let selectedTemplateType = null;
+
+        // Template definitions
+        const templates = {
+            empty: [],
+            productivity: [
+                "Did you make your bed?",
+                "Did you complete your morning routine?",
+                "Did you plan your top 3 priorities?",
+                "Did you do a focused work session?",
+                "Did you exercise or move your body?"
+            ],
+            wellness: [
+                "Did you drink enough water today?",
+                "Did you eat nutritious meals?",
+                "Did you exercise for at least 30 minutes?",
+                "Did you practice mindfulness or meditation?",
+                "Did you get enough sleep last night?"
+            ],
+            student: [
+                "Did you attend all your classes?",
+                "Did you complete today's assignments?",
+                "Did you review your notes?",
+                "Did you study for upcoming exams?",
+                "Did you take breaks and rest?"
+            ],
+            remote: [
+                "Did you set up your workspace properly?",
+                "Did you attend all scheduled meetings?",
+                "Did you take regular breaks?",
+                "Did you communicate with your team?",
+                "Did you end work at a reasonable time?"
+            ]
+        };
+
+        // Select template
+        function selectTemplate(type) {
+            selectedTemplateType = type;
+            
+            // Update UI
+            document.querySelectorAll('.template-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            event.target.closest('.template-option').classList.add('selected');
+            document.getElementById('confirmTemplate').disabled = false;
+        }
+
+        // Confirm template selection
+        function confirmTemplateSelection() {
+            if (!selectedTemplateType) return;
+            
+            // Mark that setup is complete
+            localStorage.setItem('setupComplete', 'true');
+            
+            // Initialize with selected template
+            const templateTasks = templates[selectedTemplateType];
+            templateTasks.forEach((taskText, index) => {
+                currentData.tasks.push({
+                    id: Date.now() + index,
+                    text: taskText,
+                    completed: false
+                });
+            });
+            currentData.totalTasks = templateTasks.length;
+            currentData.date = getTodayString();
+            
+            saveData();
+            
+            // Hide modal
+            document.getElementById('setupModal').classList.add('hidden');
+            
+            // Initialize app
+            updateDateDisplay();
+            updateProgress();
+            renderTasks();
+            renderHistory();
+        }
+
+        // Check if setup is needed
+        function checkFirstTimeSetup() {
+            const setupComplete = localStorage.getItem('setupComplete');
+            const hasData = localStorage.getItem('dailyChecklistData');
+            
+            if (!setupComplete && !hasData) {
+                // Show setup modal
+                document.getElementById('setupModal').classList.remove('hidden');
+                return true;
+            }
+            
+            // Hide modal
+            document.getElementById('setupModal').classList.add('hidden');
+            return false;
+        }
 
         // Initialize app
         function init() {
+            // Check if first-time setup is needed
+            if (checkFirstTimeSetup()) {
+                return; // Don't continue init until template is selected
+            }
+            
             loadData();
             checkDateChange();
             initializeDefaultTasks();
@@ -492,49 +721,11 @@
 
         // Initialize default tasks if it's a new day with no tasks
         function initializeDefaultTasks() {
+            // Only load default tasks if this is first time AND no template was selected
+            // (This function now mainly exists for compatibility)
             if (currentData.tasks.length === 0 && currentData.totalTasks === 0) {
-                const defaultTasks = [
-                    "Did you do your best before Hazel went to school?",
-                    "Did you check in with Marty at 8:45?",
-                    "Did you take Acetyl L-Carnitine (ALCAR) 1500 mg before workout? (8:30)",
-                    "Did you make your bed?",
-                    "Did you go running before 9:00?",
-                    "Did you eat eggs after workout? (11:00)",
-                    "Did you practice intermittent fasting? (1:30–8:30)",
-                    "Did you create your to-do list for today?",
-                    "Did you start working with focus music at 10:00?",
-                    "Did you only check stocks between 50-60 minutes past the hour?",
-                    "Did you read an English article?",
-                    "Did you study AI?",
-                    "Did you complete Tabbi Daily?",
-                    "Did you speak kindly to your husband and baby?",
-                    "Did you take your vitamins?",
-                    "Did you complete Duolingo?",
-                    "Did you do plank for 100 seconds? (12/1)",
-                    "Did you do Russian Twist 50 x 2 sets? (1 min rest)",
-                    "Did you do Reverse Crunch 15 x 2 sets?",
-                    "Did you do Glute Bridge 15 x 2 sets?",
-                    "Did you complete your skincare routine?",
-                    "Did you write in your gratitude journal?",
-                    "Did you do strength training?",
-                    "Did you stretch before bed?",
-                    "Did you study English with Gilmore Girls? (learn new expressions)",
-                    "Did you complete Tabbi Challenge?",
-                    "Did you organize your desk?",
-                    "Did you work on becoming an influencer for 1 hour?",
-                    "Did you avoid Korean political content? (until 12/10)"
-                ];
-                
-                defaultTasks.forEach((taskText, index) => {
-                    currentData.tasks.push({
-                        id: Date.now() + index,
-                        text: taskText,
-                        completed: false
-                    });
-                });
-                
-                currentData.totalTasks = defaultTasks.length;
-                saveData();
+                // Don't auto-load any tasks - user should use setup flow
+                return;
             }
         }
 
