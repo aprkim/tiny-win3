@@ -1,31 +1,33 @@
-# Daily Checklist
+# Tiny Wins
 
 A mobile-friendly daily checklist web app to track habits and tasks with progress visualization and history.
 
 ## Features
 
-- ✅ **Daily Task Management** - Pre-loaded with 29 daily habits and tasks
+- ✅ **Daily Task Management** - Choose from multiple templates or start with an empty list
 - 📊 **Progress Tracking** - Real-time progress bar showing completion percentage
 - 🎉 **Confetti Celebration** - Animated confetti when all tasks are completed
 - 📱 **Mobile-Friendly** - Responsive design optimized for phone screens
 - 🔄 **Drag & Drop** - Reorder tasks by dragging them
+- ✏️ **Edit Mode** - Edit or delete tasks with dedicated edit mode
 - 💾 **Auto-Save** - All data saved locally in your browser
 - 📈 **History** - View past days' completion statistics
 - ⏱️ **Auto-Reset** - Starts fresh each new day
 
 ## How to Use
 
-1. Open `index.html` in your web browser
-2. Check off tasks as you complete them
-3. Tasks disappear after 1 second with a strikethrough effect
-4. Track your progress with the visual progress bar
-5. Add new tasks using the input field at the bottom (optional)
-6. Drag tasks to reorder them
-7. View your completion history at the bottom
+1. Open the app in your web browser
+2. Choose a template on first visit (Daily Productivity, Health & Wellness, Student Life, Remote Worker, or Empty List)
+3. Check off tasks as you complete them
+4. Tasks disappear after 1.5 seconds with a strikethrough effect
+5. Track your progress with the visual progress bar
+6. Add new tasks using the input field
+7. Use Edit Mode to reorder, edit, or delete tasks
+8. View your completion history at the bottom
 
 ## Live Demo
 
-[View Live Demo](https://aprkim.github.io/daily-checklist/)
+[View Live Demo](https://aprkim.github.io/tiny-wins/)
 
 ## Technologies Used
 
@@ -43,7 +45,7 @@ No installation required! Simply:
 
 ## Customization
 
-To customize your daily tasks, edit the `defaultTasks` array in the JavaScript section of `index.html`.
+The app saves your custom task list automatically. Use "Change Template" to reset and choose a different starting point.
 
 ## License
 
