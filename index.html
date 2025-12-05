@@ -393,7 +393,31 @@
         .button-row {
             display: flex;
             gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .change-template-button {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            color: #666;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
             margin-bottom: 20px;
+        }
+
+        .change-template-button:hover {
+            background: #f9f9f9;
+            border-color: #BF3143;
+            color: #BF3143;
         }
 
         .task-item {
@@ -759,6 +783,13 @@
                 </div>
                 <div class="history-list" id="historyList"></div>
             </div>
+
+            <button class="change-template-button" onclick="changeTemplate()">
+                <svg class="button-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7H4V5zm0 9h6v5a1 1 0 01-1 1H5a1 1 0 01-1-1v-5zM14 5a1 1 0 011-1h4a1 1 0 011 1v5h-6V5zm0 7h6v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7z"/>
+                </svg>
+                <span>Change Template</span>
+            </button>
         </div>
     </div>
 
@@ -840,6 +871,19 @@
             // Mark that setup is complete
             localStorage.setItem('setupComplete', 'true');
             
+            // Clear existing tasks and reset currentData
+            currentData = {
+                date: getTodayString(),
+                tasks: [],
+                totalTasks: 0,
+                completedTasks: 0,
+                confettiShown: false
+            };
+            
+            // Set activeDate to today
+            activeDate = getTodayString();
+            localStorage.setItem('activeDate', activeDate);
+            
             // Initialize with selected template
             const templateTasks = templates[selectedTemplateType];
             templateTasks.forEach((taskText, index) => {
@@ -850,7 +894,6 @@
                 });
             });
             currentData.totalTasks = templateTasks.length;
-            currentData.date = getTodayString();
             
             // Save template tasks as user's default tasks
             localStorage.setItem('userDefaultTasks', JSON.stringify(templateTasks));
@@ -1224,6 +1267,42 @@
                     saveData();
                     updateProgress();
                     renderTasks();
+                }
+            );
+        }
+
+        // Change template - return to template selection
+        function changeTemplate() {
+            showConfirmModal(
+                'Change Template',
+                'Are you sure you want to change your template? This will clear all current tasks and history.',
+                () => {
+                    // Clear all data
+                    currentData = {
+                        date: '',
+                        tasks: [],
+                        totalTasks: 0,
+                        completedTasks: 0,
+                        confettiShown: false
+                    };
+                    history = [];
+                    activeDate = null;
+                    selectedTemplateType = null;
+                    
+                    // Clear localStorage
+                    localStorage.removeItem('dailyChecklistData');
+                    localStorage.removeItem('dailyChecklistHistory');
+                    localStorage.removeItem('userDefaultTasks');
+                    localStorage.removeItem('activeDate');
+                    localStorage.removeItem('setupComplete');
+                    
+                    // Turn off edit mode if it's on
+                    if (editModeEnabled) {
+                        toggleEditMode();
+                    }
+                    
+                    // Show template selection modal
+                    document.getElementById('setupModal').classList.remove('hidden');
                 }
             );
         }
