@@ -244,6 +244,26 @@
             border: 2px solid transparent;
         }
 
+        .task-item.template-task {
+            background: #F8FAFC;
+            border-color: #E2E8F0;
+        }
+
+        .task-item.onetime-task {
+            background: #FEF7ED;
+            border-color: #FED7AA;
+        }
+
+        .task-item.onetime-task::before {
+            content: '';
+            width: 4px;
+            height: 100%;
+            background: #F59E0B;
+            border-radius: 2px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
         .task-item:hover {
             background: #F1F5F9;
         }
@@ -717,10 +737,6 @@
                 </svg>
                 Reload from Template
             </button>
-
-            <div class="footer">
-                Created by <a href="mailto:aprkim@gmail.com">April Kim</a> • 2025
-            </div>
         </div>
     </div>
 
@@ -785,10 +801,6 @@
                 </svg>
                 Clear History
             </button>
-
-            <div class="footer">
-                Created by <a href="mailto:aprkim@gmail.com">April Kim</a> • 2025
-            </div>
         </div>
     </div>
 
@@ -919,6 +931,16 @@
             const currentMode = getDayMode();
             
             if (state.todayDate !== today) {
+                // Get uncompleted one-time tasks to carry over
+                const carryOverTasks = state.todayTasks
+                    .filter(t => !t.isTemplate && !t.completed)
+                    .map(t => ({
+                        id: Date.now() + Math.random(),
+                        text: t.text,
+                        completed: false,
+                        isTemplate: false
+                    }));
+                
                 // Save previous day to history if there were tasks
                 if (state.todayTasks.length > 0) {
                     const completed = state.todayTasks.filter(t => t.completed).length;
@@ -941,6 +963,10 @@
                 state.todayDate = today;
                 state.todayMode = currentMode;
                 loadTasksForDayMode();
+                
+                // Add carried over one-time tasks
+                state.todayTasks = [...state.todayTasks, ...carryOverTasks];
+                saveTodayTasks();
                 
                 localStorage.setItem(STORAGE_KEYS.TODAY_DATE, state.todayDate);
                 localStorage.setItem(STORAGE_KEYS.TODAY_MODE, state.todayMode);
@@ -1050,7 +1076,7 @@
             }
             
             taskList.innerHTML = activeTasks.map(task => `
-                <div class="task-item" data-id="${task.id}">
+                <div class="task-item ${task.isTemplate ? 'template-task' : 'onetime-task'}" data-id="${task.id}">
                     <input type="checkbox" class="task-checkbox" onchange="completeTask(${task.id})">
                     <span class="task-text">${escapeHtml(task.text)}</span>
                 </div>
@@ -1103,9 +1129,18 @@
         function reloadFromTemplate() {
             showConfirmModal(
                 'Reload Template',
-                'This will reset your tasks to the template. Continue?',
+                'This will reset routine tasks. One-time tasks will be kept.',
                 () => {
+                    // Preserve uncompleted one-time tasks
+                    const oneTimeTasks = state.todayTasks
+                        .filter(t => !t.isTemplate && !t.completed);
+                    
                     loadTasksForDayMode();
+                    
+                    // Add back one-time tasks
+                    state.todayTasks = [...state.todayTasks, ...oneTimeTasks];
+                    saveTodayTasks();
+                    
                     renderTodayTasks();
                     updateProgressBar();
                 }
