@@ -362,7 +362,9 @@
 
         #addTemplateButton,
         #addTemporaryButton {
-            padding: 12px 25px;
+            flex-shrink: 0;
+            height: 100%;
+            padding: 0 20px;
             background: #e8e8e8;
             color: #888;
             border: 2px solid #e0e0e0;
@@ -370,7 +372,8 @@
             font-size: 16px;
             font-weight: 600;
             cursor: not-allowed;
-            transition: transform 0.2s, opacity 0.3s, background 0.3s, color 0.3s;
+            transition: background 0.3s, color 0.3s;
+            box-sizing: border-box;
         }
 
         #addTemplateButton:not(:disabled),
@@ -382,13 +385,7 @@
 
         #addTemplateButton:hover:not(:disabled),
         #addTemporaryButton:hover:not(:disabled) {
-            transform: translateY(-2px);
             background: #a02838;
-        }
-
-        #addTemplateButton:active:not(:disabled),
-        #addTemporaryButton:active:not(:disabled) {
-            transform: translateY(0);
         }
 
         #addTemplateButton:disabled,
@@ -442,18 +439,22 @@
 
         .input-section {
             display: flex;
-            gap: 10px;
+            align-items: center;
+            gap: 8px;
+            height: 48px;
         }
 
         #templateInput,
         #temporaryInput {
             flex: 1;
-            padding: 12px 15px;
+            min-width: 0;
+            height: 100%;
+            padding: 0 12px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 16px;
-            transition: border-color 0.3s;
             background: white;
+            box-sizing: border-box;
         }
 
         #templateInput {
@@ -799,7 +800,17 @@
 
             #addTemplateButton,
             #addTemporaryButton {
-                padding: 12px 20px;
+                padding: 0 16px;
+                font-size: 14px;
+            }
+
+            #templateInput,
+            #temporaryInput {
+                font-size: 14px;
+            }
+
+            .input-section-wrapper {
+                padding: 12px;
             }
 
             .modal {
