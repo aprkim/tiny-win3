@@ -426,6 +426,7 @@
             margin-bottom: 10px;
             transition: all 0.3s ease;
             border: 2px solid transparent;
+            cursor: move;
         }
 
         .task-item.template-task {
@@ -450,6 +451,15 @@
 
         .task-item:hover {
             background: #F1F5F9;
+        }
+
+        .task-item.dragging {
+            opacity: 0.5;
+        }
+
+        .task-item.drag-over {
+            border-color: #BF3143;
+            transform: translateY(-4px);
         }
 
         .task-item.completed {
@@ -646,6 +656,21 @@
             border-radius: 12px;
             margin-bottom: 10px;
             border: 2px solid transparent;
+            cursor: move;
+            transition: all 0.3s ease;
+        }
+
+        .template-item:hover {
+            background: #F1F5F9;
+        }
+
+        .template-item.dragging {
+            opacity: 0.5;
+        }
+
+        .template-item.drag-over {
+            border-color: #BF3143;
+            transform: translateY(-4px);
         }
 
         .template-item-text {
@@ -1464,11 +1489,15 @@
             }
             
             taskList.innerHTML = activeTasks.map(task => `
-                <div class="task-item ${task.isTemplate ? 'template-task' : 'onetime-task'}" data-id="${task.id}">
+                <div class="task-item ${task.isTemplate ? 'template-task' : 'onetime-task'}" 
+                     data-id="${task.id}" 
+                     draggable="true">
                     <input type="checkbox" class="task-checkbox" onchange="completeTask(${task.id})">
                     <span class="task-text">${escapeHtml(task.text)}</span>
                 </div>
             `).join('');
+            
+            setupTodayDragAndDrop();
         }
 
         function completeTask(taskId) {
@@ -1582,7 +1611,7 @@
             }
             
             taskList.innerHTML = tasks.map((task, index) => `
-                <div class="template-item" data-id="${task.id}">
+                <div class="template-item" data-id="${task.id}" data-index="${index}" draggable="true">
                     <span class="template-item-text">${escapeHtml(task.text)}</span>
                     <div class="template-item-actions">
                         <button class="template-item-btn delete" onclick="deleteTemplateTask(${index})" title="Delete">
@@ -1591,6 +1620,8 @@
                     </div>
                 </div>
             `).join('');
+            
+            setupTemplateDragAndDrop();
         }
 
         function switchTemplateMode(mode) {
@@ -1727,6 +1758,103 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // ==================== DRAG AND DROP ====================
+        let draggedItem = null;
+        let draggedIndex = null;
+
+        function setupTodayDragAndDrop() {
+            const taskItems = document.querySelectorAll('#todayTaskList .task-item');
+            
+            taskItems.forEach((item, index) => {
+                item.addEventListener('dragstart', (e) => {
+                    draggedItem = item;
+                    draggedIndex = index;
+                    item.classList.add('dragging');
+                });
+                
+                item.addEventListener('dragend', (e) => {
+                    item.classList.remove('dragging');
+                    draggedItem = null;
+                    draggedIndex = null;
+                });
+                
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    item.classList.add('drag-over');
+                });
+                
+                item.addEventListener('dragleave', (e) => {
+                    item.classList.remove('drag-over');
+                });
+                
+                item.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    item.classList.remove('drag-over');
+                    
+                    if (draggedItem && draggedItem !== item) {
+                        const activeTasks = state.todayTasks.filter(t => !t.completed);
+                        const targetIndex = Array.from(taskItems).indexOf(item);
+                        
+                        // Reorder in the active tasks array
+                        const [movedTask] = activeTasks.splice(draggedIndex, 1);
+                        activeTasks.splice(targetIndex, 0, movedTask);
+                        
+                        // Update state.todayTasks preserving completed tasks
+                        const completedTasks = state.todayTasks.filter(t => t.completed);
+                        state.todayTasks = [...activeTasks, ...completedTasks];
+                        
+                        // Note: Not saving to localStorage - this is temporary reordering
+                        renderTodayTasks();
+                    }
+                });
+            });
+        }
+
+        function setupTemplateDragAndDrop() {
+            const templateItems = document.querySelectorAll('#templateTaskList .template-item');
+            
+            templateItems.forEach((item, index) => {
+                item.addEventListener('dragstart', (e) => {
+                    draggedItem = item;
+                    draggedIndex = index;
+                    item.classList.add('dragging');
+                });
+                
+                item.addEventListener('dragend', (e) => {
+                    item.classList.remove('dragging');
+                    draggedItem = null;
+                    draggedIndex = null;
+                });
+                
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    item.classList.add('drag-over');
+                });
+                
+                item.addEventListener('dragleave', (e) => {
+                    item.classList.remove('drag-over');
+                });
+                
+                item.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    item.classList.remove('drag-over');
+                    
+                    if (draggedItem && draggedItem !== item) {
+                        const targetIndex = Array.from(templateItems).indexOf(item);
+                        const tasks = state.templates[state.activeTemplateMode];
+                        
+                        // Reorder the template tasks
+                        const [movedTask] = tasks.splice(draggedIndex, 1);
+                        tasks.splice(targetIndex, 0, movedTask);
+                        
+                        // Save to localStorage - this is permanent
+                        saveTemplates();
+                        renderTemplateList();
+                    }
+                });
+            });
         }
 
         // ==================== EVENT LISTENERS ====================
