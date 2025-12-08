@@ -935,36 +935,59 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 14px 16px;
-            background: #F8F9FA;
-            border: 2px solid #E9ECEF;
-            border-radius: 12px;
+            padding: 14px 18px;
+            border: 2px solid transparent;
+            border-radius: 20px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .template-option:hover {
-            background: #F1F3F5;
-            border-color: #DEE2E6;
+        /* Weekday option */
+        .template-option[data-mode="weekday"] {
+            background: #FEF2F2;
+            color: #BF3143;
         }
 
-        .template-option.selected {
-            background: #FEF2F2;
-            border-color: #BF3143;
+        .template-option[data-mode="weekday"]:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* Weekend option */
+        .template-option[data-mode="weekend"] {
+            background: #F7F5FA;
+            color: #6E6282;
+        }
+
+        .template-option[data-mode="weekend"]:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* Special Day option */
+        .template-option[data-mode="holiday"] {
+            background: #F4F7F4;
+            color: #5C6D5F;
+        }
+
+        .template-option[data-mode="holiday"]:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
         }
 
         .template-option-radio {
             width: 20px;
             height: 20px;
-            border: 2px solid #CED4DA;
+            border: 2px solid currentColor;
             border-radius: 50%;
             position: relative;
             flex-shrink: 0;
             transition: all 0.2s;
+            opacity: 0.5;
         }
 
         .template-option.selected .template-option-radio {
-            border-color: #BF3143;
+            opacity: 1;
         }
 
         .template-option.selected .template-option-radio::after {
@@ -975,19 +998,14 @@
             transform: translate(-50%, -50%);
             width: 10px;
             height: 10px;
-            background: #BF3143;
+            background: currentColor;
             border-radius: 50%;
         }
 
         .template-option-label {
             font-size: 15px;
-            font-weight: 500;
-            color: #495057;
-        }
-
-        .template-option.selected .template-option-label {
-            color: #BF3143;
             font-weight: 600;
+            color: currentColor;
         }
 
         /* ==================== CONFETTI ==================== */
