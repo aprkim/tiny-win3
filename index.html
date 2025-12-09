@@ -792,10 +792,16 @@
         .history-item {
             background: white;
             border-radius: 12px;
-            padding: 16px;
+            padding: 18px 16px;
             margin-bottom: 12px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            border-left: 4px solid #BF3143;
+            border-left: 3px solid #E5E7EB;
+            cursor: pointer;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .history-item.today {
+            border-left: 3px solid #BF3143;
         }
 
         .history-item-header {
@@ -823,50 +829,58 @@
         }
 
         .history-mode {
-            font-size: 12px;
-            padding: 4px 10px;
+            font-size: 0.75rem;
+            padding: 2px 8px;
             border-radius: 12px;
             font-weight: 600;
+            border: 1px solid transparent;
         }
 
         .history-mode.weekday {
-            background: #FEF2F2;
+            background: rgba(254, 242, 242, 0.4);
             color: #BF3143;
+            border-color: #F4C7CC;
         }
 
         .history-mode.weekend {
-            background: #F7F5FA;
+            background: rgba(247, 245, 250, 0.4);
             color: #6E6282;
+            border-color: #E7E2F1;
         }
 
         .history-mode.holiday {
             background: #F4F7F4;
             color: #5C6D5F;
+            border-color: #D8E0D8;
         }
 
         .history-stats {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-top: 10px;
+            padding-top: 6px;
+            padding-bottom: 6px;
         }
 
         .history-completion {
             font-size: 14px;
-            color: #64748B;
+            color: #6B7280;
         }
 
         .history-percentage {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 1.25rem;
+            font-weight: 600;
             color: #BF3143;
         }
-        
+
         .history-tasks-list {
             margin-top: 16px;
             padding-top: 16px;
             border-top: 1px solid #E5E7EB;
+            display: none;
         }
-        
+
         .history-task {
             display: flex;
             align-items: center;
@@ -875,27 +889,32 @@
             font-size: 14px;
             color: #333;
         }
-        
+
         .history-task.template-task {
             background: transparent;
         }
-        
+
         .history-task.one-time-task {
             background: transparent;
         }
-        
+
         .history-task .task-check {
             flex-shrink: 0;
             color: #BF3143;
         }
-        
+
         .history-task .task-check:not(.checked) {
             color: #CBD5E1;
         }
-        
+
         .history-task .task-completed {
             text-decoration: line-through;
             color: #94A3B8;
+        }
+
+        .history-task.empty-history-task {
+            color: #94A3B8;
+            padding: 0;
         }
 
         /* ==================== CONFIRMATION MODAL ==================== */
@@ -2009,9 +2028,24 @@
                 return;
             }
             
-            historyList.innerHTML = state.history.map((entry, index) => `
-                <div class="history-item" data-index="${index}">
-                    <div class="history-item-header" onclick="toggleHistoryItem(${index})">
+            historyList.innerHTML = state.history.map((entry, index) => {
+                const hasTasks = entry.tasks && entry.tasks.length > 0;
+                const tasksHtml = hasTasks
+                    ? entry.tasks.map(task => `
+                        <div class="history-task ${task.isTemplate ? 'template-task' : 'one-time-task'}">
+                            <svg class="task-check ${task.completed ? 'checked' : ''}" viewBox="0 0 24 24" width="20" height="20">
+                                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                                ${task.completed ? '<path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' : ''}
+                            </svg>
+                            <span class="${task.completed ? 'task-completed' : ''}">${task.text}</span>
+                        </div>
+                    `).join('')
+                    : '<div class="history-task empty-history-task">Task details not available for this day.</div>';
+                
+                const isToday = entry.date === getTodayString();
+                return `
+                <div class="history-item ${isToday ? 'today' : ''}" data-index="${index}" onclick="toggleHistoryItem(${index})">
+                    <div class="history-item-header">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <span class="history-date">${formatDateShort(entry.date)}</span>
                             <span class="history-mode ${entry.mode}">${formatModeName(entry.mode)}</span>
@@ -2024,21 +2058,12 @@
                         <span class="history-completion">${entry.tasksCompleted} / ${entry.tasksTotal} completed</span>
                         <span class="history-percentage">${entry.percentage}%</span>
                     </div>
-                    ${entry.tasks && entry.tasks.length > 0 ? `
-                        <div class="history-tasks-list" style="display: none;">
-                            ${entry.tasks.map(task => `
-                                <div class="history-task ${task.isTemplate ? 'template-task' : 'one-time-task'}">
-                                    <svg class="task-check ${task.completed ? 'checked' : ''}" viewBox="0 0 24 24" width="20" height="20">
-                                        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
-                                        ${task.completed ? '<path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' : ''}
-                                    </svg>
-                                    <span class="${task.completed ? 'task-completed' : ''}">${task.text}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
+                    <div class="history-tasks-list">
+                        ${tasksHtml}
+                    </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
         
         function toggleHistoryItem(index) {
