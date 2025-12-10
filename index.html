@@ -1314,7 +1314,7 @@
             <div class="header">
                 <div class="header-title">Settings</div>
                 <div class="header-date">Manage sync and preferences</div>
-            </div>
+    </div>
 
             <!-- Settings Title Card -->
             <div style="margin-top: 16px; padding: 16px; background: white; border-radius: 12px; border: 1px solid #e5e7eb;">
@@ -2673,7 +2673,8 @@
         }
 
         if (success) {
-          setSyncStatus('Copied', '#BF3143');
+          // Clear status text on success (no redundant "Copied" label)
+          setSyncStatus('', '#BF3143');
           setCopyButtonsState('Copied', '#333', '#eef2f7', '#e5e7eb');
           setTimeout(() => setCopyButtonsState('Copy', '#fff', '#BF3143', 'none'), 1200);
         } else {
