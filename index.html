@@ -1369,6 +1369,35 @@
         </div>
     </div>
 
+    <!-- ==================== SYNC CODE MODAL ==================== -->
+    <div class="modal-overlay hidden" id="syncModal">
+        <div class="modal" style="max-width: 520px; padding: 28px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; color: #BF3143;">
+                    <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <div style="font-size: 22px; font-weight: 650; color: #1f2937;" id="syncModalTitle">Sync Code</div>
+            </div>
+            <div style="color: #6b7280; font-size: 14px; line-height: 1.6; margin-bottom: 16px;" id="syncModalSubtitle">
+                Use this code on another device to sync your data.
+            </div>
+            <div style="padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; color: #4A90E2;">
+                    <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <div style="flex: 1;">
+                    <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; color: #9ca3af; margin-bottom: 4px;">Your Sync Code</div>
+                    <div id="syncModalCode" style="font-family: monospace; font-size: 15px; color: #111827; word-break: break-all;">—</div>
+                </div>
+                <button class="modal-btn cancel" style="padding: 10px 12px; min-width: 68px;" onclick="copySyncCode()">Copy</button>
+            </div>
+            <div id="syncModalStatus" style="font-size: 13px; color: #10b981; min-height: 18px; margin-bottom: 16px;"></div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button class="modal-btn cancel" style="flex: 0 0 auto; padding: 10px 14px;" onclick="closeSyncModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay hidden" id="templateSelectorModal">
         <div class="modal">
             <div class="modal-title">Choose Today's Template</div>
@@ -2535,7 +2564,7 @@
       // Set sync code from user input
       function setSyncCode(code) {
         if (!code || code.trim().length === 0) {
-          alert('Please enter a valid sync code');
+          openSyncModal(getSyncCode(), 'Please enter a valid sync code.');
           return false;
         }
         localStorage.setItem('tinywins_sync_code', code.trim().toLowerCase());
@@ -2562,9 +2591,17 @@
         const code = getSyncCode();
         try {
           await navigator.clipboard.writeText(code);
-          alert('Sync code copied!');
+          const statusEl = document.getElementById('syncModalStatus');
+          if (statusEl) {
+            statusEl.style.color = '#10b981';
+            statusEl.textContent = 'Copied!';
+          }
         } catch (e) {
-          alert('Copy failed. Please copy manually:\n' + code);
+          const statusEl = document.getElementById('syncModalStatus');
+          if (statusEl) {
+            statusEl.style.color = '#EF4444';
+            statusEl.textContent = 'Copy failed. Please copy manually.';
+          }
         }
       }
 
@@ -2572,7 +2609,7 @@
       function refreshSyncCode() {
         const newCode = generateSyncCode();
         setSyncCode(newCode);
-        alert('New sync code generated:\n\n' + newCode + '\n\nEnter on another device to link.');
+        openSyncModal(newCode, 'New sync code generated. Enter on another device to link.');
       }
 
       // Submit sync code from input
@@ -2581,9 +2618,30 @@
         if (!input) return;
         const code = input.value.trim().toLowerCase();
         if (setSyncCode(code)) {
-          alert('✅ Sync code set. Reloading to sync data...');
-          location.reload();
+          openSyncModal(code, 'Sync code set. Reloading to sync data...');
+          setTimeout(() => location.reload(), 600);
         }
+      }
+
+      function openSyncModal(code, subtitle) {
+        const modal = document.getElementById('syncModal');
+        const codeEl = document.getElementById('syncModalCode');
+        const subtitleEl = document.getElementById('syncModalSubtitle');
+        const statusEl = document.getElementById('syncModalStatus');
+        
+        if (codeEl) codeEl.textContent = code || '—';
+        if (subtitleEl) subtitleEl.textContent = subtitle || 'Use this code on another device to sync your data.';
+        if (statusEl) {
+          statusEl.textContent = '';
+          statusEl.style.color = '#10b981';
+        }
+        
+        if (modal) modal.classList.remove('hidden');
+      }
+
+      function closeSyncModal() {
+        const modal = document.getElementById('syncModal');
+        if (modal) modal.classList.add('hidden');
       }
 
       try {
@@ -2753,11 +2811,7 @@
 
       // Sync Code UI Functions
       function showSyncCodeModal() {
-        const card = document.getElementById('syncCodeCard');
-        if (card) {
-          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        copySyncCode();
+        openSyncModal(getSyncCode(), 'Use this code on another device to sync your data.');
       }
 
       function promptEnterSyncCode() {
