@@ -1325,13 +1325,12 @@
                 </div>
                 <p style="margin: 0 0 16px 0; font-size: 14px; color: #666; line-height: 1.5;">Use a sync code to access your data on multiple devices (phone, tablet, computer).</p>
                 
-                <div id="syncCodeCard" style="padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 12px; background: #f9fafb; margin-bottom: 8px; display: flex; align-items: center; gap: 15px; min-height: 56px;">
+                <div id="syncCodeCard" style="padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 12px; background: #f9fafb; margin-bottom: 12px; display: flex; align-items: center; gap: 15px; min-height: 56px;">
                     <div style="flex: 0 0 75%; min-width: 0;">
                         <div id="syncCodeText" style="font-family: monospace; color: #111827; word-break: break-all; font-size: 15px; line-height: 1.4;">—</div>
                     </div>
                     <button data-sync-copy="card" style="flex: 0 0 20%; padding: 12px 14px; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; background: #BF3143; color: #fff; cursor: pointer; transition: background 0.2s; min-width: 0;" onclick="copySyncCode()">Copy</button>
                 </div>
-                <div id="syncInlineStatus" style="font-size: 13px; color: #BF3143; min-height: 16px; margin: 0 0 10px 0;"></div>
 
                 <div style="padding: 12px 14px; border: 2px solid #e5e7eb; border-radius: 12px; background: #f9fafb; display: flex; align-items: center; gap: 15px; min-height: 56px; margin-top: 12px;">
                     <input id="enterSyncCodeInput" type="text" placeholder="Enter sync code from another device" style="flex: 0 0 75%; padding: 12px 14px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; min-width: 0; background: white;">
@@ -2622,14 +2621,9 @@
 
       function setSyncStatus(text, color) {
         const statusEl = document.getElementById('syncModalStatus');
-        const inlineEl = document.getElementById('syncInlineStatus');
         if (statusEl) {
           statusEl.style.color = color || '#BF3143';
           statusEl.textContent = text || '';
-        }
-        if (inlineEl) {
-          inlineEl.style.color = color || '#BF3143';
-          inlineEl.textContent = text || '';
         }
       }
 
