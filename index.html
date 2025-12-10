@@ -2703,10 +2703,10 @@
         localStorage.removeItem(STORAGE_KEYS.TODAY_MODE_OVERRIDE);
 
         // Update UI
-        if (typeof renderTasks === 'function') renderTasks();
-        if (typeof renderTemplates === 'function') renderTemplates();
-        if (typeof renderHistory === 'function') renderHistory();
-        if (typeof updateProgress === 'function') updateProgress();
+        renderTodayTasks();
+        loadTemplatesView();
+        loadHistoryView();
+        updateProgressBar();
 
         // Delete from Firestore
         try {
@@ -2863,10 +2863,16 @@
             if (remoteData.history) state.history = remoteData.history;
             if (remoteData.todayMode) state.todayMode = remoteData.todayMode;
             
-            if (typeof renderTasks === 'function') renderTasks();
-            if (typeof renderTemplates === 'function') renderTemplates();
-            if (typeof renderHistory === 'function') renderHistory();
-            if (typeof updateProgress === 'function') updateProgress();
+            // Refresh the current view based on active tab
+            const activeTab = state.activeTab;
+            if (activeTab === 'today') {
+                renderTodayTasks();
+                updateProgressBar();
+            } else if (activeTab === 'templates') {
+                loadTemplatesView();
+            } else if (activeTab === 'history') {
+                loadHistoryView();
+            }
             
             console.log(isFirstLoad ? '✅ Loaded from Firestore' : '✅ Synced from another device');
           } else if (!doc.exists && isFirstLoad) {
