@@ -1185,7 +1185,7 @@
             <div class="header">
                 <div class="header-title">
                     Today's Tiny Wins
-                    <span id="syncStatus" style="font-size: 16px; margin-left: 8px; opacity: 1; cursor: help; color: #4A90E2;"></span>
+                    <span id="syncStatus" style="font-size: 16px; margin-left: 8px; opacity: 1; cursor: pointer; color: #4A90E2;" onclick="showSyncCodeModal()" title="Click to view/manage sync code"></span>
                 </div>
                 <div class="header-date" id="todayDate"></div>
                 <button class="header-mode" id="todayMode" onclick="showTemplateSelectorModal()">
@@ -1304,6 +1304,26 @@
                 </svg>
                 Clear History
             </button>
+
+            <!-- Sync Settings -->
+            <div style="margin-top: 40px; padding: 20px; background: white; border-radius: 16px;">
+                <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #333;">Cross-Device Sync</h3>
+                <p style="margin: 0 0 16px 0; font-size: 14px; color: #666; line-height: 1.5;">Use a sync code to access your data on multiple devices (phone, tablet, computer).</p>
+                
+                <button class="action-btn" onclick="showSyncCodeModal()" style="width: 100%; margin-bottom: 12px;">
+                    <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; margin-right: 8px;">
+                        <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                    </svg>
+                    View My Sync Code
+                </button>
+                
+                <button class="action-btn secondary" onclick="promptEnterSyncCode()" style="width: 100%;">
+                    <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; margin-right: 8px;">
+                        <path d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Enter Sync Code from Another Device
+                </button>
+            </div>
         </div>
     </div>
 
@@ -2472,6 +2492,54 @@
       let db, auth;
       let firebaseReady = false;
       let currentUserId = null;
+      let syncCode = null; // Stores the sync code for cross-device sync
+
+      // Generate a memorable 6-word sync code
+      function generateSyncCode() {
+        const words = [
+          'apple', 'banana', 'cherry', 'dragon', 'eagle', 'forest',
+          'garden', 'harbor', 'island', 'jungle', 'kitchen', 'lemon',
+          'mountain', 'novel', 'ocean', 'piano', 'quiet', 'river',
+          'sunset', 'thunder', 'umbrella', 'village', 'winter', 'yellow'
+        ];
+        const code = [];
+        for (let i = 0; i < 6; i++) {
+          code.push(words[Math.floor(Math.random() * words.length)]);
+        }
+        return code.join('-');
+      }
+
+      // Get or create sync code
+      function getSyncCode() {
+        // Check localStorage first
+        let code = localStorage.getItem('tinywins_sync_code');
+        if (!code) {
+          code = generateSyncCode();
+          localStorage.setItem('tinywins_sync_code', code);
+          console.log('🔑 Generated new sync code:', code);
+        } else {
+          console.log('🔑 Using existing sync code:', code);
+        }
+        return code;
+      }
+
+      // Set sync code from user input
+      function setSyncCode(code) {
+        if (!code || code.trim().length === 0) {
+          alert('Please enter a valid sync code');
+          return false;
+        }
+        localStorage.setItem('tinywins_sync_code', code.trim().toLowerCase());
+        syncCode = code.trim().toLowerCase();
+        console.log('🔑 Sync code set:', syncCode);
+        
+        // Restart Firebase sync with new code
+        if (unsubscribe) unsubscribe();
+        isFirstLoad = true;
+        setupFirebaseSync();
+        
+        return true;
+      }
 
       try {
         firebase.initializeApp(firebaseConfig);
@@ -2495,7 +2563,12 @@
           if (user) {
             currentUserId = user.uid;
             firebaseReady = true;
+            
+            // Get or generate sync code
+            syncCode = getSyncCode();
+            
             console.log('✅ User ID:', user.uid);
+            console.log('🔑 Sync Code:', syncCode);
             updateSyncStatus('☁️', 'Syncing across devices');
             setupFirebaseSync();
           } else {
@@ -2527,9 +2600,9 @@
       let isFirstLoad = true;
 
       function setupFirebaseSync() {
-        if (!firebaseReady || !currentUserId) return;
+        if (!firebaseReady || !syncCode) return;
 
-        const userDoc = db.collection('tinyWins').doc(currentUserId);
+        const userDoc = db.collection('tinyWins').doc(syncCode);
 
         // Listen for remote changes
         unsubscribe = userDoc.onSnapshot((doc) => {
@@ -2589,10 +2662,10 @@
 
       // Save to Firestore (called after any state change)
       async function saveToFirestore() {
-        if (!firebaseReady || !currentUserId) return;
+        if (!firebaseReady || !syncCode) return;
 
         try {
-          await db.collection('tinyWins').doc(currentUserId).set({
+          await db.collection('tinyWins').doc(syncCode).set({
             todayTasks: state.todayTasks,
             templates: state.templates,
             history: state.history,
@@ -2632,6 +2705,25 @@
         originalSaveHistory();
         saveToFirestore();
       };
+
+      // Sync Code UI Functions
+      function showSyncCodeModal() {
+        const code = getSyncCode();
+        const message = `Your Sync Code:\n\n${code}\n\nEnter this code on another device to sync your data!`;
+        alert(message);
+      }
+
+      function promptEnterSyncCode() {
+        const code = prompt('Enter your sync code from another device:');
+        if (code && setSyncCode(code)) {
+          alert('✅ Sync code set! Your data will now sync across devices.');
+          location.reload(); // Reload to fetch data from new sync code
+        }
+      }
+
+      // Make functions globally available
+      window.showSyncCodeModal = showSyncCodeModal;
+      window.promptEnterSyncCode = promptEnterSyncCode;
     </script>
 </body>
 </html>
