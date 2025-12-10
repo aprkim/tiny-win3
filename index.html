@@ -1467,7 +1467,11 @@
 
         function loadState() {
             state.setupComplete = localStorage.getItem(STORAGE_KEYS.SETUP_COMPLETE) === 'true';
-            state.activeTab = localStorage.getItem(STORAGE_KEYS.LAST_TAB) || 'today';
+            
+            // Load last tab, but validate it exists
+            const lastTab = localStorage.getItem(STORAGE_KEYS.LAST_TAB) || 'today';
+            const validTabs = ['today', 'templates', 'history'];
+            state.activeTab = validTabs.includes(lastTab) ? lastTab : 'today';
             
             const savedTemplates = localStorage.getItem(STORAGE_KEYS.TEMPLATES);
             if (savedTemplates) {
