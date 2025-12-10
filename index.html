@@ -2760,14 +2760,15 @@
         // Reset sync variables
         syncCode = null;
 
+        // Stop listening to Firestore changes
+        if (unsubscribe) {
+          unsubscribe();
+          unsubscribe = null;
+        }
+
         // Update UI to show no sync
         updateSyncStatus('📱', 'Local only');
         updateDataManagementState();
-
-        // Reload the page to reset Firebase sync
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
       }
 
       function confirmResetBrowser() {
